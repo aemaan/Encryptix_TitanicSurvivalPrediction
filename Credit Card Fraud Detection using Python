@@ -1,0 +1,109 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, precision_score, recall_score, f1_score
+
+from sklearn.decomposition import PCA
+
+df = pd.read_csv('env/bin/creditcard.csv')
+
+print(df.head())
+print(df.info())
+print(df.describe())
+
+print(df.isnull().sum())
+
+print(df['Class'].value_counts())
+
+plt.figure(figsize=(6, 4))
+sns.countplot(x='Class', data=df)
+plt.title('Class Distribution')
+plt.show()
+
+plt.figure(figsize=(8, 6))
+sns.histplot(df['Amount'], bins=50, kde=True)
+plt.title('Transaction Amount Distribution')
+plt.show()
+
+plt.figure(figsize=(10, 6))
+plt.scatter(df['Time'], df['Amount'], alpha=0.5)
+plt.title('Time vs. Amount')
+plt.xlabel('Time')
+plt.ylabel('Amount')
+plt.show()
+
+fraud = df[df['Class'] == 1]
+non_fraud = df[df['Class'] == 0]
+
+plt.figure(figsize=(20, 12))
+for i, col in enumerate(df.columns[:-1]):
+    plt.subplot(6, 5, i + 1)
+    sns.histplot(fraud[col], bins=50, color='red', label='Fraud', kde=True, alpha=0.5)
+    sns.histplot(non_fraud[col], bins=50, color='blue', label='Non-Fraud', kde=True, alpha=0.5)
+    plt.title(col)
+    plt.legend()
+plt.tight_layout()
+plt.show()
+
+corr_matrix = df.corr()
+plt.figure(figsize=(12, 10))
+sns.heatmap(corr_matrix, annot=False, cmap='coolwarm', linewidths=0.2)
+plt.title('Correlation Matrix')
+plt.show()
+
+scaler = StandardScaler()
+df['Amount'] = scaler.fit_transform(df['Amount'].values.reshape(-1, 1))
+
+X = df.drop(columns=['Class'])
+y = df['Class']
+
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(X_pca[y == 0][:, 0], X_pca[y == 0][:, 1], alpha=0.5, label='Non-Fraud')
+plt.scatter(X_pca[y == 1][:, 0], X_pca[y == 1][:, 1], alpha=0.5, label='Fraud', color='red')
+plt.title('PCA of Transactions')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.legend()
+plt.show()
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+smote = SMOTE(random_state=42)
+X_train_sm, y_train_sm = smote.fit_resample(X_train, y_train)
+
+
+lr = LogisticRegression()
+lr.fit(X_train_sm, y_train_sm)
+y_pred_lr = lr.predict(X_test)
+
+print("Logistic Regression:")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_lr))
+print("Classification Report:\n", classification_report(y_test, y_pred_lr))
+print("Precision:", precision_score(y_test, y_pred_lr))
+print("Recall:", recall_score(y_test, y_pred_lr))
+print("F1-Score:", f1_score(y_test, y_pred_lr))
+
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train_sm, y_train_sm)
+y_pred_rf = rf.predict(X_test)
+
+print("Random Forest:")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_rf))
+print("Classification Report:\n", classification_report(y_test, y_pred_rf))
+print("Precision:", precision_score(y_test, y_pred_rf))
+print("Recall:", recall_score(y_test, y_pred_rf))
+print("F1-Score:", f1_score(y_test, y_pred_rf))
+
+feature_importances = pd.Series(rf.feature_importances_, index=X.columns)
+plt.figure(figsize=(10, 6))
+feature_importances.nlargest(10).plot(kind='barh')
+plt.title('Top 10 Feature Importances')
+plt.show()
