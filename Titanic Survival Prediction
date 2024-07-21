@@ -1,0 +1,103 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+data = pd.read_csv(r'env/bin/Titanic-Dataset.csv')
+
+print("First few rows of the dataset:")
+print(data.head())
+
+print("\nBasic statistics of the dataset:")
+print(data.describe())
+
+print("\nMissing values in the dataset:")
+print(data.isnull().sum())
+
+data['Age'].fillna(data['Age'].median(), inplace=True)
+data['Embarked'].fillna(data['Embarked'].mode()[0], inplace=True)
+data['Fare'].fillna(data['Fare'].median(), inplace=True)
+
+data['Sex'] = data['Sex'].map({'male': 0, 'female': 1})
+data = pd.get_dummies(data, columns=['Embarked'])
+
+data.drop(['Name', 'Ticket', 'Cabin'], axis=1, inplace=True)
+
+fig, axs = plt.subplots(3, 1, figsize=(10, 18))
+
+sns.heatmap(data.corr(), annot=True, cmap='coolwarm', ax=axs[0])
+axs[0].set_title("Correlation Heatmap")
+
+sns.barplot(x='Sex', y='Survived', data=data, ax=axs[1])
+axs[1].set_title("Survival Rate by Gender")
+
+sns.barplot(x='Pclass', y='Survived', data=data, ax=axs[2])
+axs[2].set_title("Survival Rate by Class")
+
+plt.tight_layout()
+plt.show()
+
+X = data.drop('Survived', axis=1)
+y = data['Survived']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print('Model Evaluation:')
+print('Accuracy:', accuracy_score(y_test, y_pred))
+print('Confusion Matrix:\n', confusion_matrix(y_test, y_pred))
+print('Classification Report:\n', classification_report(y_test, y_pred))
+data = pd.read_csv(r'env/bin/Titanic-Dataset.csv')
+
+print("First few rows of the dataset:")
+print(data.head())
+
+print("\nBasic statistics of the dataset:")
+print(data.describe())
+
+print("\nMissing values in the dataset:")
+print(data.isnull().sum())
+
+data['Age'].fillna(data['Age'].median(), inplace=True)
+data['Embarked'].fillna(data['Embarked'].mode()[0], inplace=True)
+data['Fare'].fillna(data['Fare'].median(), inplace=True)
+
+data['Sex'] = data['Sex'].map({'male': 0, 'female': 1})
+data = pd.get_dummies(data, columns=['Embarked'])
+
+data.drop(['Name', 'Ticket', 'Cabin'], axis=1, inplace=True)
+fig, axs = plt.subplots(3, 1, figsize=(10, 18))
+
+sns.heatmap(data.corr(), annot=True, cmap='coolwarm', ax=axs[0])
+axs[0].set_title("Correlation Heatmap")
+
+sns.barplot(x='Sex', y='Survived', data=data, ax=axs[1])
+axs[1].set_title("Survival Rate by Gender")
+
+sns.barplot(x='Pclass', y='Survived', data=data, ax=axs[2])
+axs[2].set_title("Survival Rate by Class")
+
+plt.tight_layout()
+plt.show()
+
+X = data.drop('Survived', axis=1)
+y = data['Survived']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print('Model Evaluation:')
+print('Accuracy:', accuracy_score(y_test, y_pred))
+print('Confusion Matrix:\n', confusion_matrix(y_test, y_pred))
+print('Classification Report:\n', classification_report(y_test, y_pred))
